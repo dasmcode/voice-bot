@@ -1,0 +1,38 @@
+services:
+  app:
+    # env_file: .env
+    # depends_on:
+    #   - postgres
+    #   - redis
+    build: 
+      context: .
+    image: voice-bot:latest
+    ports:
+      - 8000:8000
+    # volumes:
+    #   - "C:/Users/90090468/AppData/Roaming/gcloud/application_default_credentials.json:/adc.json:ro"
+    #   - fileshare:/app/complaint_files
+    # environment:
+    #    GOOGLE_APPLICATION_CREDENTIALS: /adc.json
+  postgres:
+    container_name: postgres
+    image: postgres:18
+    environment:
+      - POSTGRES_DB=mydb
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=password
+    ports:
+      - 5432:5432
+    volumes:
+      - pg_data_complaint:/var/lib/postgresql
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+    volumes:
+      - ./redis-tls:/certs
+      - redis-data:/data
+    command: ["redis-server", "/certs/redis.conf"]
+volumes:
+  pg_data_complaint:
+  redis-data:
