@@ -1,19 +1,42 @@
 services:
   app:
-    # env_file: .env
-    # depends_on:
-    #   - postgres
-    #   - redis
-    build:
-      context: .
+    env_file: .env
+    depends_on:
+      redis:
+        required: true
+        condition: service_started
+      postgres:
+        required: true
+        condition: service_healthy
+      gcs-emulator:
+        required: true
+        condition: service_started
+    build: .
     image: voice-bot:latest
     ports:
       - 8000:8000
-    # volumes:
-    #   - "C:/Users/90090468/AppData/Roaming/gcloud/application_default_credentials.json:/adc.json:ro"
-    #   - fileshare:/app/complaint_files
-    # environment:
-    #    GOOGLE_APPLICATION_CREDENTIALS: /adc.json
+    healthcheck:
+      test: ["CMD-SHELL", "curl -X 'GET' 'http://localhost:8000/genai-dev/voice-bot/api/v1/health-check' -H 'accept: application/json'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+    environment:
+      DOTENV_PRIVATE_KEY: ${DOTENV_PRIVATE_KEY}
+
+  worker:
+    container_name: worker
+    image: voice-bot:latest
+    command: python -m api.workers.worker
+    environment:
+      DOTENV_PRIVATE_KEY: ${DOTENV_PRIVATE_KEY}
+    depends_on:
+      app:
+        required: true
+        condition: service_healthy
+
+
   postgres:
     container_name: postgres
     image: postgres:18
@@ -23,8 +46,15 @@ services:
       - POSTGRES_PASSWORD=password
     ports:
       - 5432:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d mydb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
     volumes:
       - pg_data_complaint:/var/lib/postgresql
+
   redis:
     image: redis
     ports:
@@ -33,6 +63,16 @@ services:
       - ./redis-tls:/certs
       - redis-data:/data
     command: ["redis-server", "/certs/redis.conf"]
+
+  gcs-emulator:
+    image: fsouza/fake-gcs-server
+    container_name: gcs_emulator
+    ports:
+      - "4443:4443"
+    command: -scheme http -port 4443 -public-host localhost:4443
+    volumes:
+      - ./fake-gcs:/data
+
 volumes:
   pg_data_complaint:
   redis-data:

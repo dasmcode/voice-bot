@@ -1,5 +1,6 @@
 from fastapi.responses import JSONResponse
 from fastapi.routing import APIRouter
+
 from api.core.logging_config import get_logger
 
 router = APIRouter()

@@ -1,32 +1,36 @@
-from fastapi import FastAPI
-from contextlib import asynccontextmanager
-from api.core.logging_config import setup_logging
-# from api.core.db import init_db
-from fastapi.middleware.cors import CORSMiddleware
-from api.router import IncludeAPIRouter
-from starlette.middleware.base import BaseHTTPMiddleware
-# from api.core.redis_client import redis_manager
 import logging
+from contextlib import asynccontextmanager
+import os
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+
+from api.core.db import init_db
+from api.core.logging_config import setup_logging
+from api.core.redis_client import redis_manager
+from api.router import IncludeAPIRouter
 
 logger = logging.getLogger(__name__)
-origins = ["https://igenaiuat.icicibankltd.com"]
+DOMAIN_URL = os.getenv("DOMAIN_URL","")
+origins = [DOMAIN_URL]
 origins = ["*"]
 csp_policy = (
     "default-src 'self';"
     "img-src 'self' data:;"
-    "script-src 'self' https://igenaiuat.icicibankltd.com;"
-    "style-src 'self' https://igenaiuat.icicibankltd.com"
+    f"script-src 'self' {DOMAIN_URL};"
+    f"style-src 'self' {DOMAIN_URL}"
 )
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     setup_logging()
-    # init_db()
-    # redis_manager.connect_sync()
-    # await redis_manager.connect_async()
+    init_db()
+    redis_manager.connect_sync()
+    await redis_manager.connect_async()
     yield
-    # await redis_manager.disconnect_all()
+    await redis_manager.disconnect_all()
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):

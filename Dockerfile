@@ -1,11 +1,17 @@
-# FROM asia-south1-docker.pkg.dev/ibank-genai-uat/i07721sgcur001/genai-custom-base-image:complaint-v2.1
-FROM python:3.12-slim-bookworm
+FROM python:3.12-slim
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && curl -sfS https://dotenvx.sh | sh \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-# COPY --chown=1000:1000 . .
+COPY pyproject.toml uv.lock ./
+ENV PYTHONUNBUFFERED=1
+ENV UV_NO_DEV=1
+RUN uv sync --locked
+ENV PATH="/app/.venv/bin:$PATH"
 COPY . .
 EXPOSE 8000
-# RUN mkdir -p complaint_files
-# USER appuser 
+ENTRYPOINT ["dotenvx", "run", "--"]
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

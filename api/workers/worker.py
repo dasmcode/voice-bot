@@ -1,8 +1,10 @@
-from rq import Worker
-from api.core.redis_client import redis_manager
-from api.core.queue import get_queue
-from api.core.logging_config import setup_logging,get_logger
 import asyncio
+
+from rq import Worker
+
+from api.core.logging_config import get_logger, setup_logging
+from api.core.queue import get_queue
+from api.core.redis_client import redis_manager
 
 
 async def main():

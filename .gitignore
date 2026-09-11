@@ -1,6 +1,8 @@
 key_uat.json
+*.acl
+fake-gcs/
 application_default_credentials.json
-.env
+.env.keys
 .venv/
 key.json
 __pycache__

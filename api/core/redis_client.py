@@ -1,6 +1,8 @@
+import os
+
 import redis
 import redis.asyncio as async_redis
-import os
+
 from api.core.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -29,9 +31,9 @@ class RedisManager:
                 health_check_interval=30,
             )
         if self.sync_client.ping():
-            logger.info(f"Redis sync client connected")
+            logger.info("Redis sync client connected")
         else:
-            logger.error(f"Redis sync client connection failed")
+            logger.error("Redis sync client connection failed")
 
     async def connect_async(self):
         if not self.async_client:
@@ -42,16 +44,16 @@ class RedisManager:
                 health_check_interval=30,
             )
         if await self.async_client.ping():
-            logger.info(f"Redis async client connected")
+            logger.info("Redis async client connected")
         else:
-            logger.error(f"Redis async client connection failed")
+            logger.error("Redis async client connection failed")
 
     async def disconnect_all(self):
         if self.async_client:
             await self.async_client.close()
         if self.sync_client:
             self.sync_client.close()
-        logger.info(f"Redis clients disconnected")
+        logger.info("Redis clients disconnected")
 
 
 redis_manager = RedisManager()
