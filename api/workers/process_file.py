@@ -1,8 +1,8 @@
 import os
 import time
+import zipfile
 from pathlib import Path
 from tempfile import TemporaryDirectory
-import zipfile
 
 from google.auth.credentials import AnonymousCredentials
 from google.cloud import storage
@@ -13,7 +13,8 @@ from api.core.models import FileState, VoiceFile
 from api.services.llm_processor import llm_pipeline
 
 PROJECT_ID = os.getenv("PROJECT_ID", "")
-ENV = os.getenv("ENV","")
+ENV = os.getenv("ENV", "")
+
 
 def process_file(transaction_id: str, bucket_name: str, blob_name: str):
     try:
@@ -51,10 +52,10 @@ def process_file(transaction_id: str, bucket_name: str, blob_name: str):
             if zipfile.is_zipfile(local_file):
                 logger.info(f"File is a zip archive : {local_file}")
 
-                extract_dir = tmp_dir/"extracted"
+                extract_dir = tmp_dir / "extracted"
                 extract_dir.mkdir()
 
-                with zipfile.ZipFile(local_file,"r") as zip_ref:
+                with zipfile.ZipFile(local_file, "r") as zip_ref:
                     zip_ref.extractall(extract_dir)
 
                 for file_path in extract_dir.rglob("*"):
@@ -64,10 +65,12 @@ def process_file(transaction_id: str, bucket_name: str, blob_name: str):
                         if extension != ".wav":
                             logger.warning(f"File is not a .wav : {blob_name}")
                             continue
-                        llm_pipeline("file_path")
+                        llm_pipeline(local_file)
             else:
-                logger.info(f"File is not a zip archive: {local_file};Proceeding with single file process...")
-                llm_pipeline("file_path")
+                logger.info(
+                    f"File is not a zip archive: {local_file};Proceeding with single file process..."
+                )
+                llm_pipeline(local_file)
         time.sleep(10)
         logger.info("Completed processing file, changing state to completed")
         file.status = FileState.completed
