@@ -1,12 +1,12 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base
-from sqlalchemy.orm import sessionmaker
 import os
 import urllib.parse
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker
+
 database = os.getenv("database")
-password = urllib.parse.quote_plus(os.getenv("password"))
-username = urllib.parse.quote_plus(os.getenv("username"))
+password = urllib.parse.quote_plus(os.getenv("password"))  # pyright: ignore[reportCallIssue, reportArgumentType]
+username = urllib.parse.quote_plus(os.getenv("username"))  # pyright: ignore[reportCallIssue, reportArgumentType]
 server = os.getenv("server")
 
 DATABASE_URL = f"postgresql+psycopg2://{username}:{password}@{server}:5432/{database}"

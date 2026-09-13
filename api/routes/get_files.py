@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from api.core.db import get_db
 from api.core.logging_config import get_logger
-from api.core.models import VoiceFile
+from api.core.sql_models import VoiceFile, to_ist
 
 router = APIRouter()
 logger = get_logger(__name__)
@@ -23,8 +23,8 @@ async def get_files(db: Session = Depends(get_db)): # noqa: B008
                     "transaction_id": str(file.transaction_id),
                     "file_name": file.file_name,
                     "status": file.status.value,
-                    "created_at": str(file.created_at),
-                    "processed_at": str(file.processed_at),
+                    "created_at": to_ist(file.created_at),  # pyright: ignore[reportArgumentType]
+                    "processed_at": to_ist(file.processed_at),  # pyright: ignore[reportArgumentType]
                     "upload_path": file.upload_path,
                     "processed_path": file.processed_path,
                 }

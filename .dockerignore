@@ -1,2 +1,11 @@
-.env.keys
+# Exclude secrets and environment files
+.env.*
+*.key
+*.pem
+secrets/
+
+# Exclude dependencies and build output
+node_modules/
+dist/
+build/
 .venv/

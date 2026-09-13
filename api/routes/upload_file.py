@@ -9,10 +9,10 @@ from sqlalchemy.orm import Session
 
 from api.core.db import get_db
 from api.core.logging_config import get_logger
-from api.core.models import VoiceFile
 from api.core.queue import get_queue
 from api.core.redis_client import redis_manager
 from api.core.request_models import GCSPath
+from api.core.sql_models import VoiceFile
 from api.workers.process_file import process_file
 
 router = APIRouter()
@@ -49,7 +49,7 @@ def parse_gcs_path(gcs_path: str) -> tuple[str, str]:
 
 
 @router.post("/submit")
-def submit_gcs_path(gcs_path: GCSPath, db: Session = Depends(get_db)):
+def submit_gcs_path(gcs_path: GCSPath, db: Session = Depends(get_db)):  # noqa: B008
     try:
         gcs_file = gcs_path.gcs_path
         logger.info(f"Received file path: {gcs_file}")
@@ -62,6 +62,8 @@ def submit_gcs_path(gcs_path: GCSPath, db: Session = Depends(get_db)):
         else:
             client = storage.Client(project=PROJECT_ID)
         bucket_name, blob_name = parse_gcs_path(gcs_path=gcs_file)
+        if not gcs_file.startswith("gs://"):
+            gcs_file = "gs://" + gcs_file
         bucket = client.bucket(bucket_name)
         blob = bucket.blob(blob_name)
         if not blob.exists(client):
@@ -95,7 +97,7 @@ def submit_gcs_path(gcs_path: GCSPath, db: Session = Depends(get_db)):
             },
             status_code=200,
         )
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         error = f"Error in submit gcs path: {e}"
         logger.error(error)
         return HTTPException(status_code=500, detail=error)

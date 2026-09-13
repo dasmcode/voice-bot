@@ -1,4 +1,5 @@
 import logging
+import os
 import sys
 
 
@@ -17,11 +18,17 @@ def setup_logging():
     handler.setFormatter(formatter)
 
     root = logging.getLogger()
-    root.setLevel(logging.INFO)
+    root.setLevel(
+        getattr(
+            logging,
+            os.getenv("LOG_LEVEL","INFO").upper(),
+            logging.INFO,
+        )
+    )
     root.handlers = [handler]
 
 
-def get_logger(name, t_id: str = None):
+def get_logger(name, t_id: str | None = None):
     logger = logging.getLogger(name)
     if t_id:
         return logging.LoggerAdapter(logger, {"t_id": t_id})
